@@ -1,0 +1,31 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?Set MSSQL_SA_PASSWORD in .env}
+      MSSQL_PID: Developer
+    ports:
+      - "${SQL_PORT:-14333}:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+      - ./dataset:/data/dataset:ro
+    restart: unless-stopped
+
+  pipeline:
+    build: .
+    depends_on:
+      - sqlserver
+    environment:
+      SQL_SERVER: sqlserver
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?Set MSSQL_SA_PASSWORD in .env}
+      ODBC_DRIVER: ODBC Driver 18 for SQL Server
+      ETL_QUERY_TIMEOUT: ${ETL_QUERY_TIMEOUT:-600}
+      PDF_STAGE_TIMEOUT: ${PDF_STAGE_TIMEOUT:-1500}
+    volumes:
+      - ./scripts/report:/app/scripts/report
+      - ./dataset:/app/dataset:ro
+    profiles: [run]
+
+volumes:
+  sqlserver_data:

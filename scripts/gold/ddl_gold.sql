@@ -1,3 +1,5 @@
+USE SQLDataWarehouse;
+GO
 
 IF OBJECT_ID('gold.dim_customers', 'V') IS NOT NULL
     DROP VIEW gold.dim_customers;
